@@ -61,4 +61,4 @@ The program consists of the following packages:
 
 #### Run scripts
 
-`python main.py` - start crawling with default configuration and save data in result.json in current folder.
+`python main.py` - start script for analyze pdf files.
