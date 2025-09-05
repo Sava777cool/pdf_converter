@@ -1,4 +1,5 @@
 import re
+import httpx
 import codecs
 import time
 import json
@@ -7,7 +8,39 @@ from pathlib import Path
 from loguru import logger
 from pymupdf import open as pdf_open
 
+from config import settings
+
 BASE_DIR = Path(__file__).parent
+
+
+async def chat_gpt_request(data_set: list):
+    """
+    Coroutine for work with chat_gpt, send data set and wait split data set
+    :param data_set: [menu items]
+    :return: str"content with split data [split items]"
+    """
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {settings.OPENAI_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    prompt = f"It's part of menu split please by items {data_set} and return only list with split items"
+
+    data = {
+        "model": "gpt-4o-mini",
+        "messages": [
+            {
+                "role": "system",
+                "content": "You are an assistant for working with python I give to you data and you need to split it into elements.",
+            },
+            {"role": "user", "content": prompt},
+        ],
+        "temperature": 0.7,
+    }
+
+    async with httpx.AsyncClient(timeout=60.0) as client:
+        response = await client.post(url, headers=headers, json=data)
+        return response.json()["choices"][0]["message"]["content"]
 
 
 def get_list_files(file_format: str) -> tuple:
